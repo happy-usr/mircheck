@@ -1,20 +1,18 @@
-package dbconn
+package common
 
 import (
 	"testing"
 	"errors"
 )
 
-type dbConnTest struct {
-	db DBSelection
-	testName string
-	wantErr bool
-	expectedErr error
-	isDBPtrNull bool
-}
-
 func TestOpen(t *testing.T) {
-	tests := []dbConnTest {
+	tests := []struct {
+		db DBSelection
+        	testName string
+        	wantErr bool
+        	expectedErr error
+        	isDBPtrNull bool
+	}{
 		{TEST, "Test database", false, nil, false},
 		{DEFAULT, "Default database", false, nil, false},
 		{208, "Invalid database", true, ErrInvalidDBSelection, true},
@@ -33,15 +31,19 @@ func TestOpen(t *testing.T) {
 					test.testName)
 			}
 			if test.isDBPtrNull != (db == nil) {
-				t.Fatalf(`%s: pointer 'db' has an 
-					unexpected value\n`, test.testName)
+				t.Fatalf("%s: pointer 'db' has an " +
+					"unexpected value\n",
+					test.testName)
 			}
 			if !test.isDBPtrNull {
 				err := db.Ping()
 				if err != nil {
-					t.Fatalf(`%s: failed to establish a 
-						database connection; %s\n`,
-						test.testName, err.Error())
+					t.Fatalf("%s: failed to " +
+						"establish a " +
+						" database " +
+						"connection: %s\n",
+						test.testName, 
+						err.Error())
 				}
 			}
 		})

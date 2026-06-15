@@ -1,4 +1,4 @@
-module github.com/happy-usr/mircheck/internal/dbconn
+module github.com/happy-usr/mircheck/internal/common
 
 go 1.24.4
 
