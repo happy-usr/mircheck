@@ -1,0 +1,6 @@
+github.com/happy-usr/mircheck/internal/common v0.0.0-20260616181149-5363d2105231 h1:wS37AaGIlbPkdXNosUPtwjsGTbbKmjxLox2zOCbTLIo=
+github.com/happy-usr/mircheck/internal/common v0.0.0-20260616181149-5363d2105231/go.mod h1:DltHaGEjFWhyr4C7qTAORwkP9qKmYTLY5G/csV6QLlc=
+github.com/mattn/go-sqlite3 v1.14.45 h1:6KA/spDguL3KV8rnybG7ezSaE4SeMR3KC9VbUoAQaIk=
+github.com/mattn/go-sqlite3 v1.14.45/go.mod h1:pjEuOr8IwzLJP2MfGeTb0A35jauH+C2kbHKBr7yXKVQ=
+github.com/xyproto/randomstring v1.2.0 h1:y7PXAEBM3XlwJjPG2JQg4voxBYZ4+hPgRdGKCfU8wik=
+github.com/xyproto/randomstring v1.2.0/go.mod h1:rgmS5DeNXLivK7YprL0pY+lTuhNQW3iGxZ18UQApw/E=
