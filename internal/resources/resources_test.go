@@ -55,7 +55,7 @@ func TestAddResource(t *testing.T) {
 				test.testName, got_val)
 		}
 		if test.wantErr {
-			if !common.CmpDriverWithErrSqliteConstraint(err, test.expectedErr) {
+			if !common.IsErrSqliteConstraint(err, test.expectedErr) {
 				t.Fatalf("%s: unexpected error type; expected "+
 					"%q, got %q\n", test.testName,
 					test.expectedErr.Error(), err.Error())

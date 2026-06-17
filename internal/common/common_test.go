@@ -1,25 +1,25 @@
 package common
 
 import (
-	"testing"
 	"errors"
 	sqlite3 "github.com/mattn/go-sqlite3"
+	"testing"
 )
 
 func TestOpen(t *testing.T) {
 	tests := []struct {
-		db DBSelection
-        	testName string
-        	wantErr bool
-        	expectedErr error
-        	isDBPtrNull bool
+		db          DBSelection
+		testName    string
+		wantErr     bool
+		expectedErr error
+		isDBPtrNull bool
 	}{
 		{TEST, "Test database", false, nil, false},
 		{DEFAULT, "Default database", false, nil, false},
 		{208, "Invalid database", true, ErrInvalidDBSelection, true},
 	}
 	for _, test := range tests {
-		t.Run(test.testName, func (t *testing.T) {
+		t.Run(test.testName, func(t *testing.T) {
 			t.Parallel()
 			db, err := Open(test.db)
 			if test.wantErr != (err != nil) {
@@ -32,18 +32,18 @@ func TestOpen(t *testing.T) {
 					test.testName)
 			}
 			if test.isDBPtrNull != (db == nil) {
-				t.Fatalf("%s: pointer 'db' has an " +
+				t.Fatalf("%s: pointer 'db' has an "+
 					"unexpected value\n",
 					test.testName)
 			}
 			if !test.isDBPtrNull {
 				err := db.Ping()
 				if err != nil {
-					t.Fatalf("%s: failed to " +
-						"establish a " +
-						" database " +
+					t.Fatalf("%s: failed to "+
+						"establish a "+
+						" database "+
 						"connection: %s\n",
-						test.testName, 
+						test.testName,
 						err.Error())
 				}
 			}
@@ -51,36 +51,31 @@ func TestOpen(t *testing.T) {
 	}
 }
 
-type TestCmpDriverErrSqlConstStruct struct {
-	err error
-	sqlConstraint sqlite3.ErrNoExtended
-        testName string
+type TestIsErrSqlConstraintStruct struct {
+	err            error
+	sqlConstraint  sqlite3.ErrNoExtended
+	testName       string
 	expectedOutput bool
 }
 
 type tmpStruct struct {
-
 }
+
 func (ts tmpStruct) Error() string {
 	return ""
 }
 
-func makeAndAddErrs(tests *[]TestCmpDriverErrSqlConstStruct) {
-	sqlite3Errs := []sqlite3.Error {
-		{Code: sqlite3.ErrAuth /*anything other than ErrConstraint*/,
+func makeAndAddErrs(tests *[]TestIsErrSqlConstraintStruct) {
+	sqlite3Errs := []sqlite3.Error{
+		{Code: sqlite3.ErrAuth, /*anything other than ErrConstraint*/
 			ExtendedCode: sqlite3.ErrConstraintRowID},
-		{Code: sqlite3.ErrConstraint, ExtendedCode: 
-			sqlite3.ErrConstraintCheck},
-		{Code: sqlite3.ErrConstraint, ExtendedCode:
-			sqlite3.ErrConstraintNotNull},
-		{Code: sqlite3.ErrConstraint, ExtendedCode:
-			sqlite3.ErrConstraintPrimaryKey},
-		{Code: sqlite3.ErrConstraint, ExtendedCode:
-			sqlite3.ErrConstraintUnique},
-		{Code: sqlite3.ErrConstraint, ExtendedCode:
-			sqlite3.ErrConstraintRowID},
+		{Code: sqlite3.ErrConstraint, ExtendedCode: sqlite3.ErrConstraintCheck},
+		{Code: sqlite3.ErrConstraint, ExtendedCode: sqlite3.ErrConstraintNotNull},
+		{Code: sqlite3.ErrConstraint, ExtendedCode: sqlite3.ErrConstraintPrimaryKey},
+		{Code: sqlite3.ErrConstraint, ExtendedCode: sqlite3.ErrConstraintUnique},
+		{Code: sqlite3.ErrConstraint, ExtendedCode: sqlite3.ErrConstraintRowID},
 	}
-	var tmpTest TestCmpDriverErrSqlConstStruct 
+	var tmpTest TestIsErrSqlConstraintStruct
 	tmpTest.err = tmpStruct{} /*anything other than expected error*/
 	tmpTest.sqlConstraint = sqlite3Errs[0].ExtendedCode
 	tmpTest.testName = "unexpected error type"
@@ -98,19 +93,19 @@ func makeAndAddErrs(tests *[]TestCmpDriverErrSqlConstStruct) {
 	tmpTest.testName = "check constraint"
 	tmpTest.expectedOutput = true
 	*tests = append(*tests, tmpTest)
-	
+
 	tmpTest.err = sqlite3Errs[2]
 	tmpTest.sqlConstraint = sqlite3Errs[2].ExtendedCode
 	tmpTest.testName = "NotNull constraint"
 	tmpTest.expectedOutput = true
 	*tests = append(*tests, tmpTest)
-	
+
 	tmpTest.err = sqlite3Errs[3]
 	tmpTest.sqlConstraint = sqlite3Errs[4].ExtendedCode
 	tmpTest.testName = "PK constraint"
 	tmpTest.expectedOutput = false
 	*tests = append(*tests, tmpTest)
-	
+
 	tmpTest.err = sqlite3Errs[4]
 	tmpTest.sqlConstraint = sqlite3Errs[5].ExtendedCode
 	tmpTest.testName = "unique constraint"
@@ -118,8 +113,8 @@ func makeAndAddErrs(tests *[]TestCmpDriverErrSqlConstStruct) {
 	*tests = append(*tests, tmpTest)
 }
 
-func TestCmpDriverErrWithSqliteConstraint(t *testing.T) {
-	tests := []TestCmpDriverErrSqlConstStruct {
+func TestIsErrSqliteConstraint(t *testing.T) {
+	tests := []TestIsErrSqlConstraintStruct{
 		{nil, 0, "nil error 1", true},
 		{nil, sqlite3.ErrIoErrRead /*anything other than ErrConstraints*/, "nil error 2", false},
 	}
@@ -127,15 +122,13 @@ func TestCmpDriverErrWithSqliteConstraint(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.testName, func(t *testing.T) {
 			t.Parallel()
-			got := CmpDriverWithErrSqliteConstraint(test.err,
+			got := IsErrSqliteConstraint(test.err,
 				test.sqlConstraint)
 			if test.expectedOutput != got {
 				t.Fatalf("%s: expected %t, got %t\n",
-				test.testName, test.expectedOutput,
-				got)
+					test.testName, test.expectedOutput,
+					got)
 			}
 		})
 	}
 }
-
-

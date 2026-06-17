@@ -2,32 +2,34 @@ package common
 
 import (
 	"database/sql"
-	sqlite3 "github.com/mattn/go-sqlite3"
 	"errors"
+	sqlite3 "github.com/mattn/go-sqlite3"
 )
 
 type DBSelection int
+
 const (
 	TEST DBSelection = iota
 	DEFAULT
 	NONE
 )
+
 var ErrInvalidDBSelection = errors.New("invalid database")
 
 func Open(db DBSelection) (*sql.DB, error) {
 	var dbAddr string
 	switch db {
-		case TEST:
-			dbAddr = "../../test.db"
-		case DEFAULT:
-			dbAddr = "../../mirrors.db"
-		default:
-			return nil, ErrInvalidDBSelection
+	case TEST:
+		dbAddr = "../../test.db"
+	case DEFAULT:
+		dbAddr = "../../mirrors.db"
+	default:
+		return nil, ErrInvalidDBSelection
 	}
 	return sql.Open("sqlite3", dbAddr)
 }
 
-func CmpDriverWithErrSqliteConstraint(err error, 
+func IsErrSqliteConstraint(err error,
 	sqliteConstraint sqlite3.ErrNoExtended) bool {
 	if err == nil && sqliteConstraint == 0 {
 		return true
@@ -43,4 +45,3 @@ func CmpDriverWithErrSqliteConstraint(err error,
 	}
 	return true
 }
-
