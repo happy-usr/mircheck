@@ -48,3 +48,10 @@ func GetResources(db *sql.DB) (*[]Resource, error) {
 	return &resources, nil
 }
 
+func UpdateResource(resource Resource, newResource string) error {
+	query := fmt.Sprintf("UPDATE resources SET resource=%q WHERE " +
+		"resource=%q", newResource, resource.Resource)
+	_, err := resource.DB.Exec(query)
+	return err
+}
+

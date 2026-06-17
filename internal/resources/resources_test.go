@@ -86,8 +86,6 @@ func TestRemoveResource(t *testing.T) {
 }
 
 func TestGetResources(t *testing.T) {
-	defer gDB.Close()
-
 	testName := "simple test"
 	resourcesPtr, err := GetResources(gDB)
 	if resourcesPtr == nil {
@@ -95,6 +93,48 @@ func TestGetResources(t *testing.T) {
 	}
 	if err != nil {
 		t.Fatalf("%s: unexpected error: %s\n", testName, err.Error())
+	}
+}
+
+type TestUpdate struct {
+    resource    Resource
+	updateVal	string
+    testName    string
+    wantErr     bool
+    expectedErr sqlite3.ErrNoExtended
+}
+
+func TestUpdateResource(t *testing.T) {
+	defer gDB.Close()
+
+	resource1 := Resource{gDB, "UPDATE_TYPE_1", "UPDATE_RESOURCE_1"}
+	resource2 := Resource{gDB, "UPDATE_TYPE_2", "UPDATE_RESOURCE_2"}
+	resource1UpdateVal := "UPDATE_CHANGED_R_1"
+	updatedResource1 := Resource{gDB, "UPDATE_TYPE_1", resource1UpdateVal}
+	AddResource(resource1)
+	AddResource(resource2)
+
+	tests := []TestUpdate {
+		{resource1, resource1UpdateVal, "simple test", false, 0},
+		{updatedResource1, resource2.Resource, "PK test", true,
+			sqlite3.ErrConstraintPrimaryKey},
+		{updatedResource1, "", "null PK test", true,
+			sqlite3.ErrConstraintCheck},
+	}
+	for _, test := range tests {
+		err := UpdateResource(test.resource, test.updateVal)
+		if test.wantErr != (err != nil) {
+            got_val := diagErr(err)
+            t.Fatalf("%s: unexpected error value; %s\n",
+                test.testName, got_val)
+        }
+        if test.wantErr {
+            if !common.IsErrSqliteConstraint(err, test.expectedErr) {
+                t.Fatalf("%s: unexpected error type; expected "+
+                    "%q, got %q\n", test.testName,
+                    test.expectedErr.Error(), err.Error())
+            }
+        }
 	}
 }
 
