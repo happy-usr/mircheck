@@ -17,3 +17,10 @@ func AddResource(resource Resource) error {
 	_, err := resource.DB.Exec(query)
 	return err
 }
+
+func RemoveResource(resource Resource) error {
+	query := fmt.Sprintf("DELETE FROM resources WHERE resource=%q",
+		resource.Resource)
+	_, err := resource.DB.Exec(query)
+	return err
+}

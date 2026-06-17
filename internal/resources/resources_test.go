@@ -45,7 +45,6 @@ func TestAddResource(t *testing.T) {
 		{Resource{gDB, gType, ""}, "null PK", true, sqlite3.ErrConstraintCheck},
 		{Resource{gDB, "", genRandomString()}, "null 'type' column", true, sqlite3.ErrConstraintCheck},
 	}
-	defer gDB.Close()
 
 	for _, test := range tests {
 		err := AddResource(test.resource)
@@ -63,3 +62,27 @@ func TestAddResource(t *testing.T) {
 		}
 	}
 }
+
+func TestRemoveResource(t *testing.T) {
+	tests := []TestResource {
+		{Resource{gDB, gType, gResource}, "simple test", false, 0},
+	}
+	defer gDB.Close()
+
+	for _, test := range tests {
+		err := RemoveResource(test.resource)
+        if test.wantErr != (err != nil) {
+            got_val := diagErr(err)
+            t.Fatalf("%s: unexpected error value; %s\n",
+                test.testName, got_val)
+        }
+        if test.wantErr {
+            if !common.IsErrSqliteConstraint(err, test.expectedErr) {
+                t.Fatalf("%s: unexpected error type; expected "+
+                    "%q, got %q\n", test.testName,
+                    test.expectedErr.Error(), err.Error())
+            }
+        }
+	}
+}
+
