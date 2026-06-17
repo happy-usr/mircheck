@@ -67,7 +67,6 @@ func TestRemoveResource(t *testing.T) {
 	tests := []TestResource {
 		{Resource{gDB, gType, gResource}, "simple test", false, 0},
 	}
-	defer gDB.Close()
 
 	for _, test := range tests {
 		err := RemoveResource(test.resource)
@@ -83,6 +82,19 @@ func TestRemoveResource(t *testing.T) {
                     test.expectedErr.Error(), err.Error())
             }
         }
+	}
+}
+
+func TestGetResources(t *testing.T) {
+	defer gDB.Close()
+
+	testName := "simple test"
+	resourcesPtr, err := GetResources(gDB)
+	if resourcesPtr == nil {
+		t.Fatalf("%s: pointer to resources is nil\n", testName)
+	}
+	if err != nil {
+		t.Fatalf("%s: unexpected error: %s\n", testName, err.Error())
 	}
 }
 

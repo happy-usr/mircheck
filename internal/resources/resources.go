@@ -24,3 +24,27 @@ func RemoveResource(resource Resource) error {
 	_, err := resource.DB.Exec(query)
 	return err
 }
+
+func GetResources(db *sql.DB) (*[]Resource, error) {
+	query := fmt.Sprintf("SELECT type, resource FROM resources")
+	rows, err := db.Query(query)
+	defer rows.Close()
+	if err != nil {
+		return nil, err
+	}
+	var resources []Resource
+	for rows.Next() {
+		rowsErr := rows.Err()
+		if rowsErr != nil {
+				return &resources, rowsErr
+		}
+		var resource Resource
+		scanErr := rows.Scan(&resource.Type, &resource.Resource)
+		if scanErr != nil {
+				return &resources, scanErr
+		}
+		resources = append(resources, resource)
+	}
+	return &resources, nil
+}
+
