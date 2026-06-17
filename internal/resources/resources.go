@@ -36,12 +36,12 @@ func GetResources(db *sql.DB) (*[]Resource, error) {
 	for rows.Next() {
 		rowsErr := rows.Err()
 		if rowsErr != nil {
-				return &resources, rowsErr
+			return &resources, rowsErr
 		}
 		var resource Resource
 		scanErr := rows.Scan(&resource.Type, &resource.Resource)
 		if scanErr != nil {
-				return &resources, scanErr
+			return &resources, scanErr
 		}
 		resources = append(resources, resource)
 	}
@@ -49,9 +49,8 @@ func GetResources(db *sql.DB) (*[]Resource, error) {
 }
 
 func UpdateResource(resource Resource, newResource string) error {
-	query := fmt.Sprintf("UPDATE resources SET resource=%q WHERE " +
+	query := fmt.Sprintf("UPDATE resources SET resource=%q WHERE "+
 		"resource=%q", newResource, resource.Resource)
 	_, err := resource.DB.Exec(query)
 	return err
 }
-
