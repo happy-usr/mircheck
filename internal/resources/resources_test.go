@@ -2,17 +2,15 @@ package resources
 
 import (
 	"database/sql"
-	"fmt"
 	"github.com/happy-usr/mircheck/internal/common"
+	"github.com/happy-usr/mircheck/internal/commontest"
 	sqlite3 "github.com/mattn/go-sqlite3"
 	"testing"
 )
 
 type TestResource struct {
-	resource    Resource
-	testName    string
-	wantErr     bool
-	expectedErr sqlite3.ErrNoExtended
+	resource Resource
+	err      commontest.TestSqliteConstraint
 }
 
 var gResource Resource
@@ -23,59 +21,58 @@ func init() {
 	gResource = Resource{gDB, "GLOBAL_T_1", "GLOBAL_R_2"}
 }
 
-func diagErr(err error) string {
-	var got_val string
-	if err == nil {
-		got_val = "(error is nil)"
-	} else {
-		got_val = fmt.Sprintf("error: %q", err.Error())
-	}
-	return got_val
-}
-
 func TestAddResource(t *testing.T) {
 	tests := []TestResource{
-		{gResource, "simple test", false, 0},
-		{gResource, "PK duplication", true, sqlite3.ErrConstraintPrimaryKey},
-		{Resource{gDB, "ADD_T_1", ""}, "null PK", true, sqlite3.ErrConstraintCheck},
-		{Resource{gDB, "", "ADD_R_1"}, "null 'type' column", true, sqlite3.ErrConstraintCheck},
+		{gResource, commontest.TestSqliteConstraint{
+			WantErr:        false,
+			ExpectedSqlErr: 0,
+			TestName:       "simple test",
+		},
+		},
+		{gResource, commontest.TestSqliteConstraint{
+			WantErr:        true,
+			ExpectedSqlErr: sqlite3.ErrConstraintPrimaryKey,
+			TestName:       "PK duplication",
+		},
+		},
+		{Resource{gDB, "ADD_T_1", ""}, commontest.TestSqliteConstraint{
+			WantErr:        true,
+			ExpectedSqlErr: sqlite3.ErrConstraintCheck,
+			TestName:       "null PK",
+		},
+		},
+		{Resource{gDB, "", "ADD_R_1"}, commontest.TestSqliteConstraint{
+			WantErr:        true,
+			ExpectedSqlErr: sqlite3.ErrConstraintCheck,
+			TestName:       "null 'type' column",
+		},
+		},
 	}
 
 	for _, test := range tests {
-		err := AddResource(test.resource)
-		if test.wantErr != (err != nil) {
-			got_val := diagErr(err)
-			t.Fatalf("%s: unexpected error value; %s\n",
-				test.testName, got_val)
-		}
-		if test.wantErr {
-			if !common.IsErrSqliteConstraint(err, test.expectedErr) {
-				t.Fatalf("%s: unexpected error type; expected "+
-					"%q, got %q\n", test.testName,
-					test.expectedErr.Error(), err.Error())
-			}
+		test.err.Err = AddResource(test.resource)
+		errString := test.err.CheckErrSqlConstraint()
+		if errString != "" {
+			t.Fatal(errString)
 		}
 	}
 }
 
 func TestRemoveResource(t *testing.T) {
 	tests := []TestResource{
-		{gResource, "simple test", false, 0},
+		{gResource, commontest.TestSqliteConstraint{
+			WantErr:        false,
+			ExpectedSqlErr: 0,
+			TestName:       "simple test",
+		},
+		},
 	}
 
 	for _, test := range tests {
-		err := RemoveResource(test.resource)
-		if test.wantErr != (err != nil) {
-			got_val := diagErr(err)
-			t.Fatalf("%s: unexpected error value; %s\n",
-				test.testName, got_val)
-		}
-		if test.wantErr {
-			if !common.IsErrSqliteConstraint(err, test.expectedErr) {
-				t.Fatalf("%s: unexpected error type; expected "+
-					"%q, got %q\n", test.testName,
-					test.expectedErr.Error(), err.Error())
-			}
+		test.err.Err = RemoveResource(test.resource)
+		errString := test.err.CheckErrSqlConstraint()
+		if errString != "" {
+			t.Fatal(errString)
 		}
 	}
 }
@@ -92,11 +89,9 @@ func TestGetResources(t *testing.T) {
 }
 
 type TestUpdate struct {
-	resource    Resource
-	updateVal   string
-	testName    string
-	wantErr     bool
-	expectedErr sqlite3.ErrNoExtended
+	resource  Resource
+	updateVal string
+	err       commontest.TestSqliteConstraint
 }
 
 func TestUpdateResource(t *testing.T) {
@@ -110,25 +105,30 @@ func TestUpdateResource(t *testing.T) {
 	AddResource(resource2)
 
 	tests := []TestUpdate{
-		{resource1, resource1UpdateVal, "simple test", false, 0},
-		{updatedResource1, resource2.Resource, "PK test", true,
-			sqlite3.ErrConstraintPrimaryKey},
-		{updatedResource1, "", "null PK test", true,
-			sqlite3.ErrConstraintCheck},
+		{resource1, resource1UpdateVal, commontest.TestSqliteConstraint{
+			WantErr:        false,
+			ExpectedSqlErr: 0,
+			TestName:       "simple test",
+		},
+		},
+		{updatedResource1, resource2.Resource, commontest.TestSqliteConstraint{
+			WantErr:        true,
+			ExpectedSqlErr: sqlite3.ErrConstraintPrimaryKey,
+			TestName:       "PK test",
+		},
+		},
+		{updatedResource1, "", commontest.TestSqliteConstraint{
+			WantErr:        true,
+			ExpectedSqlErr: sqlite3.ErrConstraintCheck,
+			TestName:       "null PK test",
+		},
+		},
 	}
 	for _, test := range tests {
-		err := UpdateResource(test.resource, test.updateVal)
-		if test.wantErr != (err != nil) {
-			got_val := diagErr(err)
-			t.Fatalf("%s: unexpected error value; %s\n",
-				test.testName, got_val)
-		}
-		if test.wantErr {
-			if !common.IsErrSqliteConstraint(err, test.expectedErr) {
-				t.Fatalf("%s: unexpected error type; expected "+
-					"%q, got %q\n", test.testName,
-					test.expectedErr.Error(), err.Error())
-			}
+		test.err.Err = UpdateResource(test.resource, test.updateVal)
+		errString := test.err.CheckErrSqlConstraint()
+		if errString != "" {
+			t.Fatal(errString)
 		}
 	}
 }
