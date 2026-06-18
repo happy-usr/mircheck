@@ -95,8 +95,6 @@ type TestUpdate struct {
 }
 
 func TestUpdateResource(t *testing.T) {
-	defer gDB.Close()
-
 	resource1 := Resource{gDB, "UPDATE_T_1", "UPDATE_R_1"}
 	resource2 := Resource{gDB, "UPDATE_T_2", "UPDATE_R_2"}
 	resource1UpdateVal := "UPDATE_CHANGED_R_1"
@@ -126,6 +124,36 @@ func TestUpdateResource(t *testing.T) {
 	}
 	for _, test := range tests {
 		test.err.Err = UpdateResource(test.resource, test.updateVal)
+		errString := test.err.CheckErrSqlConstraint()
+		if errString != "" {
+			t.Fatal(errString)
+		}
+	}
+}
+
+func TestUpdateType(t *testing.T) {
+	defer gDB.Close()
+
+	resource1 := Resource{gDB, "UPDATET_T_1", "UPDATET_R_1"}
+	resource1UpdateVal := "UPDATET_CHANGED_T_1"
+	AddResource(resource1)
+
+	tests := []TestUpdate{
+		{resource1, resource1UpdateVal, commontest.TestSqliteConstraint{
+			WantErr:        false,
+			ExpectedSqlErr: 0,
+			TestName:       "simple test",
+		},
+		},
+		{resource1, "", commontest.TestSqliteConstraint{
+			WantErr:        true,
+			ExpectedSqlErr: sqlite3.ErrConstraintCheck,
+			TestName:       "null 'type' test",
+		},
+		},
+	}
+	for _, test := range tests {
+		test.err.Err = UpdateType(test.resource, test.updateVal)
 		errString := test.err.CheckErrSqlConstraint()
 		if errString != "" {
 			t.Fatal(errString)

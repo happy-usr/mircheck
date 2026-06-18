@@ -54,3 +54,10 @@ func UpdateResource(resource Resource, newResource string) error {
 	_, err := resource.DB.Exec(query)
 	return err
 }
+
+func UpdateType(resource Resource, newType string) error {
+	query := fmt.Sprintf("UPDATE resources SET type=%q WHERE "+
+		"resource=%q", newType, resource.Resource)
+	_, err := resource.DB.Exec(query)
+	return err
+}
